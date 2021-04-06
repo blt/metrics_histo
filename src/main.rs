@@ -1,8 +1,10 @@
 use metrics::{counter, histogram};
 use metrics_util::Handle;
-use std::{thread, time};
+use std::time;
+use tokio::task;
+use tokio::time::interval;
 
-fn writer() {
+async fn writer() {
     let mut total_loops = 0;
     loop {
         let before = time::Instant::now();
@@ -13,12 +15,12 @@ fn writer() {
     }
 }
 
-fn poller() {
+async fn poller() {
+    let mut interval = interval(time::Duration::from_secs(1));
     let controller = metrics_histo::get_controller();
-    let delay = time::Duration::from_secs(1);
 
     loop {
-        thread::sleep(delay);
+        interval.tick().await;
         for kv in controller.registry.map.iter() {
             let _key = kv.key();
             let handle = kv.value();
@@ -38,13 +40,10 @@ fn poller() {
     }
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     metrics_histo::init();
 
-    let mut handles = Vec::new();
-    handles.push(thread::spawn(writer));
-    handles.push(thread::spawn(poller));
-    for handle in handles.drain(..) {
-        handle.join().unwrap();
-    }
+    task::spawn(writer());
+    poller().await;
 }
