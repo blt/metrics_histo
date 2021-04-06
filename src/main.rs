@@ -42,7 +42,8 @@ async fn poller() {
 
 #[tokio::main]
 async fn main() {
-    metrics_histo::init();
+    metrics_histo::metrics();
+    metrics_histo::tracing();
 
     task::spawn(writer());
     poller().await;

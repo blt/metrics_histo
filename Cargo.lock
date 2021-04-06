@@ -387,6 +387,9 @@ dependencies = [
  "metrics-util",
  "once_cell",
  "tokio",
+ "tracing",
+ "tracing-core",
+ "tracing-subscriber",
  "twox-hash",
 ]
 
